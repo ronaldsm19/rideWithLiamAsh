@@ -1,0 +1,412 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Design tokens — "Night Ride" cinematic dark theme
+   ============================================================ */
+@theme {
+  --color-bg: #08080b;
+  --color-bg-soft: #0d0d12;
+  --color-surface: #131318;
+  --color-fg: #f5f5f7;
+  --color-muted: #a1a1aa;
+  --color-faint: #71717a;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-accent: #ff7a3d;
+  --color-accent-2: #ff3d6e;
+  --color-accent-soft: #ffb088;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+:root {
+  --nav-h: 4rem;
+  color-scheme: dark;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-h) + 1rem);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Ambient page glow that lives behind everything */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 40rem at 12% -8%, rgba(255, 122, 61, 0.12), transparent 60%),
+    radial-gradient(50rem 38rem at 100% 0%, rgba(255, 61, 110, 0.1), transparent 55%),
+    radial-gradient(70rem 50rem at 50% 120%, rgba(99, 102, 241, 0.08), transparent 60%);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  color: #fff;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  border: 3px solid var(--color-bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   Reusable components
+   ============================================================ */
+@layer components {
+  /* ---- Typography helpers ---- */
+  .text-gradient {
+    background: linear-gradient(115deg, #ffffff 0%, #ffd9c2 38%, var(--color-accent) 70%, var(--color-accent-2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em];
+    color: var(--color-accent-soft);
+  }
+  .eyebrow::before {
+    content: "";
+    width: 1.75rem;
+    height: 1px;
+    background: linear-gradient(90deg, var(--color-accent), transparent);
+  }
+
+  .section-title {
+    @apply text-balance text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl;
+    letter-spacing: -0.02em;
+  }
+
+  /* ---- Surfaces ---- */
+  .glass {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
+    border: 1px solid var(--color-line);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+
+  .card {
+    @apply relative overflow-hidden rounded-2xl p-6;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+    border: 1px solid var(--color-line);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.5s, box-shadow 0.5s;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.85);
+  }
+
+  /* ---- Buttons (variants are self-contained so they work standalone) ---- */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    @apply relative inline-flex cursor-pointer select-none items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s, background 0.25s, border-color 0.25s, color 0.25s, opacity 0.25s;
+  }
+  .btn:active,
+  .btn-primary:active,
+  .btn-secondary:active,
+  .btn-danger:active {
+    transform: scale(0.97);
+  }
+  .btn:disabled,
+  .btn-primary:disabled,
+  .btn-secondary:disabled,
+  .btn-danger:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+  /* Compact size modifier */
+  .btn-sm {
+    @apply gap-1.5 px-4 py-2 text-xs;
+  }
+
+  .btn-primary {
+    color: #1a0a02;
+    background: linear-gradient(135deg, var(--color-accent-soft), var(--color-accent) 45%, var(--color-accent-2));
+    box-shadow: 0 10px 30px -10px rgba(255, 122, 61, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 44px -12px rgba(255, 92, 80, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  .btn-secondary {
+    @apply text-fg;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--color-line);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-danger {
+    @apply text-white;
+    background: linear-gradient(135deg, #fb5d5d, #d61f4d);
+    box-shadow: 0 10px 30px -12px rgba(214, 31, 77, 0.7);
+  }
+  .btn-danger:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  /* Sheen sweep across primary buttons */
+  .btn-primary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+    transform: translateX(-130%);
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+  .btn-primary:hover::after {
+    transform: translateX(130%);
+  }
+
+  /* ---- Form controls ---- */
+  .field {
+    @apply block w-full rounded-xl px-4 py-3 text-sm text-fg;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--color-line);
+    transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+  }
+  .field::placeholder {
+    color: var(--color-faint);
+  }
+  .field:hover {
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+  .field:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: color-mix(in srgb, var(--color-accent) 70%, transparent);
+    box-shadow: 0 0 0 4px rgba(255, 122, 61, 0.16);
+  }
+  /* Remove number input spinners for a cleaner look */
+  .field[type="number"]::-webkit-outer-spin-button,
+  .field[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .field[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+/* ============================================================
+   Hero aurora + entrance animation
+   ============================================================ */
+.aurora {
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(40px);
+  opacity: 0.9;
+  background:
+    radial-gradient(35% 45% at 20% 25%, rgba(255, 122, 61, 0.55), transparent 70%),
+    radial-gradient(30% 40% at 80% 20%, rgba(255, 61, 110, 0.45), transparent 70%),
+    radial-gradient(40% 50% at 65% 80%, rgba(120, 90, 255, 0.4), transparent 70%),
+    radial-gradient(30% 35% at 30% 75%, rgba(255, 176, 136, 0.35), transparent 70%);
+  background-size: 200% 200%;
+  animation: aurora-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-drift {
+  0% {
+    background-position: 0% 0%, 100% 0%, 50% 100%, 0% 100%;
+    transform: scale(1);
+  }
+  100% {
+    background-position: 30% 20%, 70% 30%, 40% 70%, 20% 80%;
+    transform: scale(1.15);
+  }
+}
+
+/* Grain/texture overlay to kill banding on gradients */
+.grain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+}
+
+/* Staggered entrance for hero content (above the fold) */
+.rise {
+  opacity: 0;
+  transform: translateY(26px);
+  animation: rise-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--rise-delay, 0ms);
+}
+@keyframes rise-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Bouncing scroll cue */
+.scroll-cue {
+  animation: cue 2s ease-in-out infinite;
+}
+@keyframes cue {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50% { transform: translateY(8px); opacity: 1; }
+}
+
+/* Shimmer placeholder for images while they load */
+.shimmer {
+  background: linear-gradient(110deg, rgba(255, 255, 255, 0.04) 30%, rgba(255, 255, 255, 0.09) 50%, rgba(255, 255, 255, 0.04) 70%);
+  background-size: 220% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+@keyframes shimmer {
+  to { background-position: -220% 0; }
+}
+
+/* Modal entrance */
+.modal-backdrop {
+  animation: fade-in 0.25s ease-out;
+}
+.modal-card {
+  animation: modal-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modal-pop {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   Scroll reveal (driven by Reveal.tsx via IntersectionObserver)
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================================
+   Leaflet — make it match the dark theme
+   ============================================================ */
+.leaflet-container {
+  background: #0b0b10 !important;
+  font-family: var(--font-sans) !important;
+}
+.leaflet-tile {
+  filter: brightness(0.92) contrast(1.05);
+}
+.leaflet-popup-content-wrapper {
+  background: rgba(20, 20, 26, 0.92) !important;
+  color: var(--color-fg) !important;
+  border: 1px solid var(--color-line) !important;
+  border-radius: 12px !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.8) !important;
+}
+.leaflet-popup-tip {
+  background: rgba(20, 20, 26, 0.92) !important;
+}
+.leaflet-popup-content a,
+.leaflet-popup-content strong {
+  color: var(--color-fg) !important;
+}
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background: rgba(20, 20, 26, 0.9) !important;
+  color: var(--color-fg) !important;
+  border-color: var(--color-line) !important;
+}
+.leaflet-control-attribution {
+  background: rgba(8, 8, 11, 0.6) !important;
+  color: var(--color-faint) !important;
+}
+.leaflet-control-attribution a {
+  color: var(--color-muted) !important;
+}
+
+/* Glowing route + markers */
+.leaflet-overlay-pane path {
+  filter: drop-shadow(0 0 6px rgba(255, 122, 61, 0.7));
+}
+
+/* ============================================================
+   Reduced motion — disable all the fancy stuff
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal,
+  .rise {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

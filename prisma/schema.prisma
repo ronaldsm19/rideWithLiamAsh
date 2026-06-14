@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum EstadoSolicitud {
+  pendiente
+  aprobada
+  rechazada
+}
+
+/// Parada intermedia de la rodada, embebida dentro de Evento.
+type Parada {
+  nombre      String
+  descripcion String?
+  lat         Float
+  lng         Float
+  fotos       String[]
+  orden       Int
+}
+
+/// Configuración de la rodada (un solo registro).
+model Evento {
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  nombre               String
+  descripcion          String
+  fecha                DateTime
+  horaSalida           String
+  lugarSalidaNombre    String
+  lugarSalidaDireccion String
+  salidaLat            Float
+  salidaLng            Float
+  destinoNombre        String
+  destinoDireccion     String
+  destinoLat           Float
+  destinoLng           Float
+  cuposMax             Int
+  fotosSalida          String[]
+  paradas              Parada[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+/// Solicitud de inscripción de un motociclista a la rodada.
+model Solicitud {
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  nombreCompleto   String
+  correo           String
+  marcaMoto        String
+  modeloMoto       String
+  licenciaVigente  Boolean
+  cilindrada       Int
+  aniosExperiencia Int
+  equipoCasco      Boolean
+  equipoGuantes    Boolean
+  equipoChaqueta   Boolean
+  estado           EstadoSolicitud @default(pendiente)
+  motivoRechazo    String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([correo, marcaMoto, modeloMoto])
+}
