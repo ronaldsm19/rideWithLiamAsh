@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,61 +7,88 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum EstadoEvento {
+  borrador
+  publicada
+  archivada
+}
+
 enum EstadoSolicitud {
   pendiente
   aprobada
   rechazada
 }
 
-/// Parada intermedia de la rodada, embebida dentro de Evento.
-type Parada {
+enum TipoPunto {
+  salida
+  parada
+  destino
+}
+
+enum TipoCampo {
+  texto
+  numero
+  email
+  telefono
+  select
+  checkbox
+}
+
+type PuntoRuta {
+  tipo        TipoPunto
   nombre      String
   descripcion String?
   lat         Float
   lng         Float
-  fotos       String[]
   orden       Int
+  fotos       String[]
 }
 
-/// Configuración de la rodada (un solo registro).
+type CampoFormulario {
+  etiqueta  String
+  clave     String
+  tipo      TipoCampo
+  opciones  String[]
+  requerido Boolean
+  ayuda     String?
+  orden     Int
+  activo    Boolean
+}
+
+type RequisitoMinimo {
+  texto String
+  orden Int
+}
+
 model Evento {
-  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
-  nombre               String
-  descripcion          String
-  fecha                DateTime
-  horaSalida           String
-  lugarSalidaNombre    String
-  lugarSalidaDireccion String
-  salidaLat            Float
-  salidaLng            Float
-  destinoNombre        String
-  destinoDireccion     String
-  destinoLat           Float
-  destinoLng           Float
-  cuposMax             Int
-  fotosSalida          String[]
-  paradas              Parada[]
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  nombre      String
+  descripcion String
+  fecha       DateTime
+  horaSalida  String
+  cuposMax    Int
+  estado      EstadoEvento      @default(borrador)
+  dificultad  String?
+  distanciaKm Float?
+  puntos      PuntoRuta[]
+  campos      CampoFormulario[]
+  requisitos  RequisitoMinimo[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  solicitudes Solicitud[]
 }
 
-/// Solicitud de inscripción de un motociclista a la rodada.
 model Solicitud {
-  id               String          @id @default(auto()) @map("_id") @db.ObjectId
-  nombreCompleto   String
-  correo           String
-  marcaMoto        String
-  modeloMoto       String
-  licenciaVigente  Boolean
-  cilindrada       Int
-  aniosExperiencia Int
-  equipoCasco      Boolean
-  equipoGuantes    Boolean
-  equipoChaqueta   Boolean
-  estado           EstadoSolicitud @default(pendiente)
-  motivoRechazo    String?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  evento        Evento          @relation(fields: [eventoId], references: [id])
+  eventoId      String          @db.ObjectId
+  estado        EstadoSolicitud @default(pendiente)
+  motivoRechazo String?
+  respuestas    Json
+  correo        String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
-  @@index([correo, marcaMoto, modeloMoto])
+  @@index([eventoId, correo])
 }

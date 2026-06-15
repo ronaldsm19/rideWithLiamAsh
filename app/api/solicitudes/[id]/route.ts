@@ -3,54 +3,41 @@ import { prisma } from "@/lib/prisma";
 import { accionSolicitudSchema } from "@/lib/validation";
 import { enviarNotificacionEstado } from "@/lib/email";
 
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+type Params = { params: Promise<{ id: string }> };
+
+export async function PATCH(request: NextRequest, { params }: Params) {
   const { id } = await params;
   const body = await request.json().catch(() => null);
-
-  if (!body) {
-    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
-  }
+  if (!body) return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
 
   const parsed = accionSolicitudSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "datos_invalidos", issues: parsed.error.issues },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "datos_invalidos", issues: parsed.error.issues }, { status: 400 });
   }
 
   const solicitud = await prisma.solicitud.findUnique({ where: { id } });
-  if (!solicitud) {
-    return NextResponse.json({ error: "no_encontrada" }, { status: 404 });
-  }
+  if (!solicitud) return NextResponse.json({ error: "no_encontrada" }, { status: 404 });
 
+  const evento = await prisma.evento.findUnique({ where: { id: solicitud.eventoId } });
   const accion = parsed.data;
-  const evento = await prisma.evento.findFirst({ orderBy: { createdAt: "asc" } });
 
   if (accion.accion === "aprobar") {
     if (!accion.confirmarSobrecupo && evento) {
-      const cuposAprobados = await prisma.solicitud.count({ where: { estado: "aprobada" } });
-
+      const cuposAprobados = await prisma.solicitud.count({
+        where: { eventoId: solicitud.eventoId, estado: "aprobada" },
+      });
       if (cuposAprobados >= evento.cuposMax) {
         return NextResponse.json(
-          {
-            error: "cupos_excedidos",
-            message: "Ya se alcanzó el cupo máximo. Confirmá si querés aprobar de todas formas.",
-            cuposAprobados,
-            cuposMax: evento.cuposMax,
-          },
+          { error: "cupos_excedidos", message: "Ya se alcanzó el cupo máximo.", cuposAprobados, cuposMax: evento.cuposMax },
           { status: 409 }
         );
       }
     }
-
     const actualizada = await prisma.solicitud.update({
       where: { id },
       data: { estado: "aprobada", motivoRechazo: null },
     });
-
     if (evento) await enviarNotificacionEstado(actualizada, evento);
-
     return NextResponse.json({ solicitud: actualizada });
   }
 
@@ -59,9 +46,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       where: { id },
       data: { estado: "rechazada", motivoRechazo: accion.motivoRechazo },
     });
-
     if (evento) await enviarNotificacionEstado(actualizada, evento);
-
     return NextResponse.json({ solicitud: actualizada });
   }
 

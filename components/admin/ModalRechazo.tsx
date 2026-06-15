@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { MOTIVOS_RECHAZO_PREDEFINIDOS } from "@/lib/validation";
 
-type ModalRechazoProps = {
+type Props = {
   nombreSolicitante: string;
+  motivosPredefinidos?: string[];
   enviando: boolean;
   onConfirmar: (motivo: string) => void;
   onCancelar: () => void;
@@ -12,11 +13,13 @@ type ModalRechazoProps = {
 
 export default function ModalRechazo({
   nombreSolicitante,
+  motivosPredefinidos,
   enviando,
   onConfirmar,
   onCancelar,
-}: ModalRechazoProps) {
+}: Props) {
   const [motivo, setMotivo] = useState("");
+  const predefinidos = motivosPredefinidos ?? [...MOTIVOS_RECHAZO_PREDEFINIDOS];
 
   return (
     <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
@@ -27,7 +30,7 @@ export default function ModalRechazo({
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {MOTIVOS_RECHAZO_PREDEFINIDOS.map((predefinido) => (
+          {predefinidos.map((predefinido) => (
             <button
               key={predefinido}
               type="button"
@@ -40,9 +43,7 @@ export default function ModalRechazo({
         </div>
 
         <label className="mt-4 block">
-          <span className="mb-2 block text-sm font-medium text-muted">
-            Motivo del rechazo
-          </span>
+          <span className="mb-2 block text-sm font-medium text-muted">Motivo del rechazo</span>
           <textarea
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}

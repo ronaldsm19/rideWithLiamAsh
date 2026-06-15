@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Design tokens — "Night Ride" cinematic dark theme
+   Design tokens — "Jungle Road" Costa Rica adventure theme
    ============================================================ */
 @theme {
-  --color-bg: #08080b;
-  --color-bg-soft: #0d0d12;
-  --color-surface: #131318;
-  --color-fg: #f5f5f7;
-  --color-muted: #a1a1aa;
-  --color-faint: #71717a;
-  --color-line: rgba(255, 255, 255, 0.08);
-  --color-accent: #ff7a3d;
-  --color-accent-2: #ff3d6e;
-  --color-accent-soft: #ffb088;
+  --color-bg: #07090a;
+  --color-bg-soft: #0c1109;
+  --color-surface: #111a0d;
+  --color-fg: #f0f4ee;
+  --color-muted: #96a88f;
+  --color-faint: #627059;
+  --color-line: rgba(255, 255, 255, 0.07);
+  --color-accent: #e8892b;
+  --color-accent-2: #3ab554;
+  --color-accent-soft: #f5c56a;
 }
 
 @theme inline {
@@ -56,9 +56,9 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(60rem 40rem at 12% -8%, rgba(255, 122, 61, 0.12), transparent 60%),
-    radial-gradient(50rem 38rem at 100% 0%, rgba(255, 61, 110, 0.1), transparent 55%),
-    radial-gradient(70rem 50rem at 50% 120%, rgba(99, 102, 241, 0.08), transparent 60%);
+    radial-gradient(60rem 44rem at 15% -6%, rgba(232, 137, 43, 0.11), transparent 60%),
+    radial-gradient(50rem 40rem at 92% 5%,  rgba(58, 181, 84, 0.09),  transparent 55%),
+    radial-gradient(70rem 55rem at 50% 110%, rgba(20, 55, 14, 0.18),   transparent 60%);
 }
 
 ::selection {
@@ -95,7 +95,7 @@ body::before {
 @layer components {
   /* ---- Typography helpers ---- */
   .text-gradient {
-    background: linear-gradient(115deg, #ffffff 0%, #ffd9c2 38%, var(--color-accent) 70%, var(--color-accent-2) 100%);
+    background: linear-gradient(115deg, #ffffff 0%, #f5e9c0 28%, var(--color-accent) 58%, var(--color-accent-2) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -164,13 +164,13 @@ body::before {
   }
 
   .btn-primary {
-    color: #1a0a02;
-    background: linear-gradient(135deg, var(--color-accent-soft), var(--color-accent) 45%, var(--color-accent-2));
-    box-shadow: 0 10px 30px -10px rgba(255, 122, 61, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    color: #0a0600;
+    background: linear-gradient(135deg, var(--color-accent-soft), var(--color-accent) 48%, var(--color-accent-2));
+    box-shadow: 0 10px 30px -10px rgba(232, 137, 43, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
   .btn-primary:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 18px 44px -12px rgba(255, 92, 80, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    box-shadow: 0 18px 44px -12px rgba(232, 137, 43, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 
   .btn-secondary {
@@ -227,7 +227,7 @@ body::before {
     outline: none;
     background: rgba(255, 255, 255, 0.06);
     border-color: color-mix(in srgb, var(--color-accent) 70%, transparent);
-    box-shadow: 0 0 0 4px rgba(255, 122, 61, 0.16);
+    box-shadow: 0 0 0 4px rgba(232, 137, 43, 0.14);
   }
   /* Remove number input spinners for a cleaner look */
   .field[type="number"]::-webkit-outer-spin-button,
@@ -248,15 +248,15 @@ body::before {
   inset: -20%;
   z-index: 0;
   pointer-events: none;
-  filter: blur(40px);
-  opacity: 0.9;
+  filter: blur(44px);
+  opacity: 0.95;
   background:
-    radial-gradient(35% 45% at 20% 25%, rgba(255, 122, 61, 0.55), transparent 70%),
-    radial-gradient(30% 40% at 80% 20%, rgba(255, 61, 110, 0.45), transparent 70%),
-    radial-gradient(40% 50% at 65% 80%, rgba(120, 90, 255, 0.4), transparent 70%),
-    radial-gradient(30% 35% at 30% 75%, rgba(255, 176, 136, 0.35), transparent 70%);
+    radial-gradient(38% 50% at 18% 22%, rgba(232, 137, 43, 0.60), transparent 70%),
+    radial-gradient(32% 42% at 78% 18%, rgba(58, 181, 84, 0.42),  transparent 70%),
+    radial-gradient(44% 54% at 60% 82%, rgba(14, 60, 18, 0.55),   transparent 70%),
+    radial-gradient(28% 38% at 28% 72%, rgba(245, 197, 106, 0.38), transparent 70%);
   background-size: 200% 200%;
-  animation: aurora-drift 18s ease-in-out infinite alternate;
+  animation: aurora-drift 20s ease-in-out infinite alternate;
 }
 
 @keyframes aurora-drift {
@@ -387,7 +387,7 @@ body::before {
 
 /* Glowing route + markers */
 .leaflet-overlay-pane path {
-  filter: drop-shadow(0 0 6px rgba(255, 122, 61, 0.7));
+  filter: drop-shadow(0 0 7px rgba(232, 137, 43, 0.65));
 }
 
 /* ============================================================
