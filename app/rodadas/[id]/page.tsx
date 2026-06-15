@@ -1,5 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import CuposIndicator from "@/components/CuposIndicator";
 import MapaRutaCliente from "@/components/MapaRutaCliente";
@@ -9,38 +11,29 @@ import Reveal from "@/components/Reveal";
 
 export const dynamic = "force-dynamic";
 
+type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const evento = await prisma.evento.findUnique({ where: { id }, select: { nombre: true } });
+  return { title: evento ? `${evento.nombre} · Ride with Liam` : "Rodada no encontrada" };
+}
+
 const rise = (delay: number): CSSProperties =>
   ({ "--rise-delay": `${delay}ms` }) as CSSProperties;
 
-export default async function Home() {
-  const evento = await prisma.evento.findFirst({
-    where: { estado: "publicada" },
-    orderBy: { fecha: "asc" },
-  });
+export default async function RodadaPublicaPage({ params }: Props) {
+  const { id } = await params;
 
-  if (!evento) {
-    return (
-      <main className="relative flex min-h-screen flex-col items-center justify-center px-6 text-center">
-        <div className="aurora" aria-hidden />
-        <div className="relative max-w-lg">
-          <span className="eyebrow justify-center">Rodada en moto</span>
-          <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Todavía no hay una rodada publicada
-          </h1>
-          <p className="mt-4 text-muted">
-            El organizador aún no publicó el próximo evento. Volvé a intentarlo más tarde.
-          </p>
-        </div>
-      </main>
-    );
-  }
-
-  const totalPublicadas = await prisma.evento.count({ where: { estado: "publicada" } });
+  const evento = await prisma.evento.findUnique({ where: { id } });
+  if (!evento || evento.estado !== "publicada") notFound();
 
   const cuposAprobados = await prisma.solicitud.count({
     where: { eventoId: evento.id, estado: "aprobada" },
   });
   const disponibles = Math.max(evento.cuposMax - cuposAprobados, 0);
+
+  const totalPublicadas = await prisma.evento.count({ where: { estado: "publicada" } });
 
   const puntosSorted = [...evento.puntos].sort((a, b) => a.orden - b.orden);
   const salida = puntosSorted.find((p) => p.tipo === "salida");
@@ -48,7 +41,6 @@ export default async function Home() {
   const paradas = puntosSorted.filter((p) => p.tipo === "parada");
 
   const heroImg = salida?.fotos[0] ?? destino?.fotos[0] ?? paradas.find((p) => p.fotos.length > 0)?.fotos[0];
-
   const requisitos = [...evento.requisitos].sort((a, b) => a.orden - b.orden);
 
   const fechaFormateada = new Intl.DateTimeFormat("es-CR", {
@@ -69,27 +61,27 @@ export default async function Home() {
     <>
       <header className="sticky top-0 z-50">
         <nav className="glass mx-auto flex h-[var(--nav-h)] max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
-          <a href="#top" className="flex items-center gap-2.5 font-semibold tracking-tight">
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-accent-soft to-accent-2 text-[15px] shadow-[0_0_12px_rgba(232,137,43,0.4)]">
-              🏍
-            </span>
-            <span className="hidden sm:flex sm:flex-col sm:leading-tight">
-              <span className="text-sm font-bold tracking-tight text-fg">Ride with Liam</span>
-              <span className="text-[10px] font-medium tracking-widest text-faint uppercase truncate max-w-[200px]">{evento.nombre}</span>
-            </span>
-            <span className="sm:hidden text-sm">Ride with Liam</span>
-          </a>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-2.5 font-semibold tracking-tight">
+              <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-accent-soft to-accent-2 text-[15px] shadow-[0_0_12px_rgba(232,137,43,0.4)]">
+                🏍
+              </span>
+              <span className="hidden sm:flex sm:flex-col sm:leading-tight">
+                <span className="text-sm font-bold tracking-tight text-fg">Ride with Liam</span>
+                <span className="text-[10px] font-medium tracking-widest text-faint uppercase truncate max-w-[200px]">{evento.nombre}</span>
+              </span>
+              <span className="sm:hidden text-sm">Ride with Liam</span>
+            </Link>
             {totalPublicadas > 1 && (
-              <Link href="/rodadas" className="hidden items-center gap-1.5 rounded-full border border-line bg-white/[0.04] px-3 py-1.5 text-xs text-muted transition-colors hover:text-fg sm:flex">
+              <Link href="/rodadas" className="hidden items-center gap-1.5 rounded-full border border-line bg-white/[0.04] px-3 py-1 text-xs text-muted transition-colors hover:text-fg sm:flex">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-                Más rodadas
+                Ver todas
               </Link>
             )}
-            <a href="#inscripcion" className="btn btn-primary !px-5 !py-2 text-xs">
-              Inscribirme
-            </a>
           </div>
+          <a href="#inscripcion" className="btn btn-primary !px-5 !py-2 text-xs">
+            Inscribirme
+          </a>
         </nav>
       </header>
 
@@ -155,7 +147,6 @@ export default async function Home() {
           <Reveal delay={120} className="mt-4">
             <CuposIndicator cuposMax={evento.cuposMax} cuposAprobados={cuposAprobados} />
           </Reveal>
-
           {requisitos.length > 0 && (
             <Reveal delay={200} className="mt-8">
               <div className="rounded-2xl border border-line bg-white/[0.02] p-6">
@@ -186,7 +177,6 @@ export default async function Home() {
                 </div>
               </div>
             </Reveal>
-
             <Reveal delay={120} className="mt-6">
               <ol className="flex flex-col gap-0 sm:flex-row sm:items-stretch sm:gap-0">
                 <RouteStep badge="S" title={salida.nombre} sub="Salida" tone="start" />
@@ -231,35 +221,16 @@ export default async function Home() {
                 </span>
                 <span className="text-xs text-faint">Africa Twin 1100 · Costa Rica</span>
               </div>
-
               <div className="flex flex-col items-center gap-0.5 sm:items-center">
                 <p className="text-xs italic text-faint">"Dichoso de vivir en Costa Rica."</p>
               </div>
-
               <div className="flex flex-col items-center gap-1 sm:items-end">
                 <span className="text-[10px] font-medium uppercase tracking-widest text-faint">Un proyecto de</span>
-                <a
-                  href="https://www.instagram.com/cafeartesanaldonjuato/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-fg"
-                >
-                  <span
-                    className="grid h-5 w-5 place-items-center rounded-md text-[11px]"
-                    style={{ background: "linear-gradient(135deg, #6b3a1f, #c8832a)" }}
-                  >
-                    ☕
-                  </span>
+                <a href="https://www.instagram.com/cafeartesanaldonjuato/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-fg">
+                  <span className="grid h-5 w-5 place-items-center rounded-md text-[11px]" style={{ background: "linear-gradient(135deg, #6b3a1f, #c8832a)" }}>☕</span>
                   Café Artesanal Don Juato
                 </a>
-                <a
-                  href="https://www.instagram.com/kahve_tanna/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-faint transition-colors hover:text-muted"
-                >
-                  @kahve_tanna
-                </a>
+                <a href="https://www.instagram.com/kahve_tanna/" target="_blank" rel="noopener noreferrer" className="text-xs text-faint transition-colors hover:text-muted">@kahve_tanna</a>
               </div>
             </div>
           </div>
@@ -269,7 +240,7 @@ export default async function Home() {
   );
 }
 
-/* ---- Local building blocks ---- */
+/* ---- Building blocks (same as page.tsx) ---- */
 function Section({ id, eyebrow, title, description, children }: { id: string; eyebrow: string; title: string; description?: string; children: ReactNode }) {
   return (
     <section id={id} className="mx-auto w-full max-w-6xl scroll-mt-24 px-5 py-16 sm:px-8 sm:py-24">
@@ -294,22 +265,18 @@ function Chip({ icon, text, highlight = false }: { icon: ReactNode; text: ReactN
   );
 }
 
-function InfoCard({ icon, label, sub, children }: { icon: ReactNode; label: string; sub?: string; children: ReactNode }) {
+function InfoCard({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
   return (
     <div className="card h-full">
       <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/5 text-accent ring-1 ring-line">{icon}</div>
       <p className="mt-4 text-xs font-medium uppercase tracking-wider text-faint">{label}</p>
       <p className="mt-1 text-lg font-semibold text-fg">{children}</p>
-      {sub && <p className="mt-1 text-sm text-muted">{sub}</p>}
     </div>
   );
 }
 
 function RouteStep({ badge, title, sub, tone = "stop", last = false }: { badge: string; title: string; sub: string; tone?: "start" | "stop" | "end"; last?: boolean }) {
-  const badgeClass =
-    tone === "start" ? "bg-emerald-500/90 text-white"
-    : tone === "end" ? "bg-gradient-to-br from-accent to-accent-2 text-white"
-    : "bg-white/10 text-fg ring-1 ring-line";
+  const badgeClass = tone === "start" ? "bg-emerald-500/90 text-white" : tone === "end" ? "bg-gradient-to-br from-accent to-accent-2 text-white" : "bg-white/10 text-fg ring-1 ring-line";
   return (
     <li className="relative flex flex-1 items-start gap-3 pb-6 sm:flex-col sm:pb-0">
       <div className="flex items-center sm:w-full">
@@ -325,22 +292,13 @@ function RouteStep({ badge, title, sub, tone = "stop", last = false }: { badge: 
   );
 }
 
-/* ---- Inline icons ---- */
 function svg(children: ReactNode) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      {children}
-    </svg>
-  );
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{children}</svg>;
 }
-const IconCalendar = () => svg(<><rect x="3" y="4.5" width="18" height="16" rx="2.5" /><path d="M3 9h18M8 2.5v4M16 2.5v4" /></>);
-const IconClock = () => svg(<><circle cx="12" cy="12" r="9" /><path d="M12 7.5V12l3 2" /></>);
-const IconPin = () => svg(<><path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11Z" /><circle cx="12" cy="10" r="2.5" /></>);
-const IconFlag = () => svg(<path d="M5 21V4M5 4h11l-1.5 3.5L16 11H5" />);
-const IconUsers = () => svg(<><circle cx="9" cy="8" r="3.2" /><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M21 20a5.2 5.2 0 0 0-3.5-4.9" /></>);
-const IconArrowRight = () => svg(<path d="M5 12h14M13 6l6 6-6 6" />);
-const IconChevronDown = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <path d="m6 9 6 6 6-6" />
-  </svg>
-);
+const IconCalendar = () => svg(<><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></>);
+const IconClock = () => svg(<><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></>);
+const IconPin = () => svg(<><path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></>);
+const IconFlag = () => svg(<path d="M5 21V4M5 4h11l-1.5 3.5L16 11H5"/>);
+const IconUsers = () => svg(<><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M21 20a5.2 5.2 0 0 0-3.5-4.9"/></>);
+const IconArrowRight = () => svg(<path d="M5 12h14M13 6l6 6-6 6"/>);
+const IconChevronDown = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m6 9 6 6 6-6"/></svg>;
