@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { solicitudSchema } from "@/lib/validation";
 
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
     data: {
       eventoId,
       correo,
-      respuestas: respuestas as Record<string, unknown>,
+      respuestas: respuestas as Prisma.InputJsonValue,
       estado: "pendiente",
     },
   });
