@@ -10,7 +10,7 @@ export const MOTIVOS_RECHAZO_PREDEFINIDOS = [
 export const solicitudSchema = z.object({
   eventoId: z.string().min(1, "eventoId requerido"),
   correo: z.string().email("Correo inválido"),
-  respuestas: z.record(z.unknown()),
+  respuestas: z.record(z.string(), z.unknown()),
 });
 
 export type SolicitudInput = z.infer<typeof solicitudSchema>;
